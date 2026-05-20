@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Hola mundo</h1>
+
+<button onclick="enviar()">Registrar</button>
+
+<p id="resultado">Aquí aparecerá la respuesta...</p>
+
+<script>
+function enviar() {
+  document.getElementById("resultado").innerText = "Enviando...";
+
+  fetch('http://127.0.0.1:3000/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: 'ver',
+      email: 'ver@test.com',
+      password: '123456'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("resultado").innerText = JSON.stringify(data);
+  })
+  .catch(err => {
+    document.getElementById("resultado").innerText = "ERROR: " + err;
+  });
+}
+</script>
+
+</body>
+</html>
