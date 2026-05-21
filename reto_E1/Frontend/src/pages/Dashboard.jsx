@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import DashboardAdmin from "./DashboardAdmin";
-import DashboardEmployee from "./DashboardEmployee";
-import DashboardClient from "./DashboardClient";
-import DashboardGuest from "./DashboardGuest";
+import DashboardAdmin from "./Dashboards/DashboardAdmin";
+import DashboardEmployee from "./Dashboards/DashboardEmployee";
+import DashboardClient from "./Dashboards/DashboardClient";
+import DashboardGuest from "./Dashboards/DashboardGuest";
 
 export default function Dashboard({ setIsLoggedIn }) {
   const { role } = useParams();

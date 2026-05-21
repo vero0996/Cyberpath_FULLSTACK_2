@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import UnityGame from "../components/UnityGame";
 
 export default function GamePage() {
   const role = localStorage.getItem("role");
@@ -10,13 +11,13 @@ export default function GamePage() {
       <header className="bg-[#111] h-20 flex items-center justify-between px-10 shadow-md">
 
         <h1 className="text-2xl font-bold">
-          CyberSec Platform
+          CyberSec: Rockwell Automation
         </h1>
 
         <nav className="flex gap-10 text-lg font-bold">
 
           <Link
-            to="/home"
+            to="/"
             className="hover:text-[#CD163F]"
           >
             Home
@@ -37,7 +38,7 @@ export default function GamePage() {
           </Link>
 
           <Link
-            to="/"
+            to="/login"
             className="hover:text-[#CD163F]"
           >
             Logout
@@ -68,7 +69,7 @@ export default function GamePage() {
             />
 
             <ScenarioCard
-              title="Critical Infrastructure"
+              title="In the Wild"
             />
 
           </div>
@@ -83,19 +84,7 @@ export default function GamePage() {
               Game Preview (Unity WebGL)
             </h2>
 
-            <button className="bg-[#CD163F] px-8 py-3 rounded-lg font-bold mb-8">
-              Start Simulation
-            </button>
-
-            <div className="w-full h-[600px] rounded-2xl overflow-hidden bg-[#2A2A2A]">
-
-              <img
-                src="/Splash12.png"
-                alt="Splash"
-                className="w-full h-full object-cover"
-              />
-
-            </div>
+            <UnityGame />
 
           </div>
         </main>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PopupSignIn from "../pages/PopUpLogin";
+import UnityGame from "../components/UnityGame";
 
 export default function Home({ isLoggedIn, setIsLoggedIn }) {
 
@@ -39,7 +40,7 @@ export default function Home({ isLoggedIn, setIsLoggedIn }) {
       <nav className="bg-[#111] px-10 py-6 flex justify-between items-center shadow-lg">
 
         <h1 className="text-2xl font-bold">
-          CyberSec Platform
+          CyberSec: Rockwell Automation
         </h1>
 
         <div className="flex gap-10 text-lg font-semibold">
@@ -114,11 +115,7 @@ export default function Home({ isLoggedIn, setIsLoggedIn }) {
 
           <div className="bg-[#2A2A2A] rounded-xl mt-8 p-4 flex justify-center">
 
-            <img
-              src="/Splash12.png"
-              alt="Game Preview"
-              className="rounded-lg w-full max-w-md"
-            />
+            <UnityGame /> 
 
           </div>
 
