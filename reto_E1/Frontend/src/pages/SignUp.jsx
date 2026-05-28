@@ -20,22 +20,60 @@ export default function SignUp({ setIsLoggedIn }) {
     });
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
 
-    e.preventDefault();
+  e.preventDefault();
 
-    // guardar rol
-    localStorage.setItem("userRole", formData.role);
+  try {
 
-    // guardar usuario opcional
-    localStorage.setItem("userName", formData.name);
+    const response = await fetch(
+      "http://localhost:3000/register",
+      {
+        method: "POST",
 
-    // login activo
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          username: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error);
+      return;
+    }
+
+    /* guardar datos */
+    localStorage.setItem(
+      "userRole",
+      formData.role
+    );
+
+    localStorage.setItem(
+      "userName",
+      formData.name
+    );
+
     setIsLoggedIn(true);
 
-    // regresar home
-    navigate("/");
-  };
+    /* redireccionar */
+    navigate(`/dashboard/${formData.role}`);
+
+  } catch (err) {
+
+    console.log(err);
+
+    alert("Error del servidor");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#1A1A1A] flex justify-center items-center px-6">

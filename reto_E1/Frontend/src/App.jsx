@@ -20,7 +20,8 @@ function ProtectedRoute({ isLoggedIn, children }) {
 }
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+  localStorage.getItem("userRole") !== null);
 
   return (
     <BrowserRouter>

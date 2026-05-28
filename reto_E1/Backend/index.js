@@ -1,105 +1,208 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcrypt'); // es para encriptar contraseñas de los usuarios
-const pool = require('./db/db');
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+
+const pool = require("./db/db");
+
 const app = express();
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(express.json());
 app.use(cors());
 
+console.log("🚀 INDEX CARGADO CORRECTAMENTE");
 
-app.get('/', (req, res) => {
-  res.send('¡Hola, mundo!');
+/* =========================
+   TEST ROUTE
+========================= */
+app.get("/", (req, res) => {
+  console.log("📍 GET /");
+  res.send("Backend funcionando");
 });
 
-// ruta de prueba para verificar conexión a DB
-app.get('/test-db', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+/* =========================
+   REGISTER
+========================= */
+app.post("/register", async (req, res) => {
+  console.log("📍 POST /register", req.body);
 
-// ruta para registrar usuarios
-app.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role } = req.body;
 
-  // validaciones
   if (!username || !email || !password) {
-    return res.status(400).json({ error: 'Campos vacíos' });
-  }
-
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password muy corta' });
+    console.log("⚠️ Campos vacíos en register");
+    return res.status(400).json({ error: "Campos vacíos" });
   }
 
   try {
-    // verificar si ya existe
     const exists = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1',
+      `SELECT * FROM usuario WHERE correo = $1`,
       [email]
     );
 
     if (exists.rows.length > 0) {
-      return res.status(400).json({ error: 'Usuario ya existe' });
+      console.log("⚠️ Usuario ya existe:", email);
+      return res.status(400).json({ error: "Usuario ya existe" });
     }
 
-    // encriptar contraseña
     const hashed = await bcrypt.hash(password, 10);
 
-    // guardar en DB
+    let roleId = 4;
+    if (role === "employee") roleId = 2;
+    if (role === "client") roleId = 3;
+
     await pool.query(
-      'INSERT INTO usuarios (username, email, password) VALUES ($1, $2, $3)',
-      [username, email, hashed]
+      `
+      INSERT INTO usuario
+      (username, correo, password_hash, fecha_registro, estado, id_rol)
+      VALUES ($1, $2, $3, CURRENT_DATE, 'Activo', $4)
+      `,
+      [username, email, hashed, roleId]
     );
 
-    res.status(201).json({ message: 'Usuario creado' });
+    console.log("✅ Usuario creado:", email);
 
+    res.status(201).json({ message: "Usuario creado" });
   } catch (err) {
+    console.error("❌ ERROR REGISTER:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ruta para login de usuarios
-app.post('/login', async (req, res) => {
-
-  if (!req.body) {
-    return res.status(400).json({ error: 'No body received' });
-  }
+/* =========================
+   LOGIN
+========================= */
+app.post("/login", async (req, res) => {
+  console.log("📍 POST /login", req.body);
 
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Campos vacíos' });
+    console.log("⚠️ Campos vacíos login");
+    return res.status(400).json({ error: "Campos vacíos" });
   }
 
   try {
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1',
+      `
+      SELECT u.*, r.nombre_rol
+      FROM usuario u
+      JOIN rol r ON u.id_rol = r.id_rol
+      WHERE u.correo = $1
+      `,
       [email]
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Credenciales incorrectas' });
+      console.log("⚠️ Usuario no encontrado:", email);
+      return res.status(400).json({ error: "Credenciales incorrectas" });
     }
 
     const user = result.rows[0];
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.password_hash);
 
     if (!valid) {
-      return res.status(400).json({ error: 'Credenciales incorrectas' });
+      console.log("⚠️ Password incorrecto:", email);
+      return res.status(400).json({ error: "Credenciales incorrectas" });
     }
 
-    res.json({ message: 'Login exitoso' });
+    let role = "guest";
+    if (user.nombre_rol === "Empleado") role = "employee";
+    if (user.nombre_rol === "Cliente") role = "client";
+    if (user.nombre_rol === "Administrador") role = "admin";
 
+    console.log("✅ LOGIN OK:", email);
+
+    res.json({
+      message: "Login exitoso",
+      user: {
+        id: user.id_usuario,
+        username: user.username,
+        email: user.correo,
+        role
+      }
+    });
   } catch (err) {
+    console.error("❌ ERROR LOGIN:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// levantar servidor
+/* =========================
+   KPI (IMPORTANTE: FUERA DE LOGIN)
+========================= */
+app.post("/kpi", async (req, res) => {
+  console.log("📍 POST /kpi", req.body);
+
+  const {
+    id_usuario,
+    tiempo_jugado,
+    amenazas_detectadas,
+    progreso,
+    tasa_retencion
+  } = req.body;
+
+  if (!id_usuario) {
+    console.log("⚠️ Falta id_usuario");
+    return res.status(400).json({ error: "id_usuario requerido" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      INSERT INTO KPI_Usuario
+      (id_usuario, tiempo_jugado, amenazas_detectadas, progreso, tasa_retencion, fecha_registro)
+      VALUES ($1, $2, $3, $4, $5, CURRENT_DATE)
+      RETURNING *
+      `,
+      [id_usuario, tiempo_jugado, amenazas_detectadas, progreso, tasa_retencion]
+    );
+
+    console.log("✅ KPI guardado:", result.rows[0]);
+
+    res.status(201).json({
+      message: "KPI guardado",
+      data: result.rows[0]
+    });
+  } catch (err) {
+    console.error("❌ ERROR KPI:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   GET KPI BY USER
+========================= */
+app.get("/kpi/:id", async (req, res) => {
+  console.log("📍 GET /kpi/:id", req.params.id);
+
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM KPI_Usuario
+      WHERE id_usuario = $1
+      ORDER BY fecha_registro DESC
+      `,
+      [id]
+    );
+
+    console.log(`📊 KPI encontrados: ${result.rows.length}`);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ ERROR GET KPI:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   SERVER START
+========================= */
 app.listen(3000, () => {
-  console.log('http://localhost:3000');
+  console.log("🌐 Servidor en http://localhost:3000");
 });

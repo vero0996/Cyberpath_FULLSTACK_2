@@ -4,14 +4,19 @@ import { useNavigate } from "react-router-dom";
 
 export default function DashboardEmployee({ onLogout }) {
   const navigate = useNavigate();
+  const userRole =
+    localStorage.getItem("userRole") || "guest";
+  const userName =
+    localStorage.getItem("userName") || "User";
 
   return (
-    <div className="bg-[#2A2A2A] min-h-screen w-full text-white px-8 py-6">
+    <div className="bg-[#2A2A2A] min-h-screen text-white">
       {/* Navbar */}
-      <div className="bg-[#111] rounded-2xl px-8 py-5 flex items-center justify-between shadow-lg">
-        <h1 className="text-2xl font-bold">CyberSec Platform</h1>
+      <nav className="bg-[#111] px-10 py-6 flex justify-between items-center shadow-lg">
+        <h1 className="text-2xl font-bold">CyberSec: Rockwell Automation </h1>
 
         <div className="flex gap-8 items-center text-lg font-semibold">
+
           <button
             onClick={() => navigate("/")}
             className="hover:text-[#CD163F] transition"
@@ -30,14 +35,67 @@ export default function DashboardEmployee({ onLogout }) {
             Dashboard
           </button>
 
-          <button
-            onClick={onLogout}
-            className="hover:text-[#CD163F] transition"
-          >
-            Logout
-          </button>
+          <div className="relative group">
+
+          {/* PROFILE BUTTON */}
+          <div className="flex items-center gap-3 cursor-pointer bg-[#1A1A1A] px-4 py-2 rounded-xl hover:bg-[#222] transition">
+
+            {/* AVATAR */}
+            <div className="w-10 h-10 rounded-full bg-[#CD163F] flex items-center justify-center font-bold text-lg">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+
+            {/* USER INFO */}
+            <div className="text-left leading-tight">
+              <p className="text-sm font-bold">
+                {userName}
+              </p>
+
+              <p className="text-xs text-gray-400 capitalize">
+                {userRole}
+              </p>
+            </div>
+
+          </div>
+
+          {/* DROPDOWN */}
+          <div className="absolute right-0 mt-3 w-64 bg-[#1A1A1A] rounded-2xl shadow-2xl p-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-[#333]">
+
+            <div className="flex items-center gap-4 mb-4">
+
+              <div className="w-14 h-14 rounded-full bg-[#CD163F] flex items-center justify-center text-2xl font-bold">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg">
+                  {userName}
+                </h3>
+
+                <p className="text-gray-400 text-sm">
+                  {localStorage.getItem("userEmail")}
+                </p>
+              </div>
+
+            </div>
+
+            <div className="border-t border-[#333] pt-4">
+
+              <button
+                onClick={onLogout}
+                className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold"
+              >
+                Logout
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
-      </div>
+
+        </div>
+      </nav>
 
       {/* Title */}
       <div className="mt-12 text-center">
