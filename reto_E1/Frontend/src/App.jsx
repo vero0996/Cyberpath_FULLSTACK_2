@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import GamePage from "./pages/GamePage";
 import SignUp from "./pages/SignUp";
+import Settings from "./pages/Settings";
 
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn
@@ -76,6 +77,10 @@ function App() {
               <GamePage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/settings"
+          element={<Settings />}
         />
 
       </Routes>

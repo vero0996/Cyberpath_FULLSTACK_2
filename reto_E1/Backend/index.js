@@ -3,6 +3,9 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 
 const pool = require("./db/db");
+const settingsRoutes = require("./routes/settings");
+const userRoutes = require("./routes/usuarios");
+const kpiRoutes = require("./routes/kpi");
 
 const app = express();
 
@@ -11,6 +14,13 @@ const app = express();
 ========================= */
 app.use(express.json());
 app.use(cors());
+
+/* =========================
+   ROUTES
+========================= */
+app.use("/settings", settingsRoutes);
+app.use("/usuarios", userRoutes);
+app.use("/kpi", kpiRoutes);
 
 console.log("🚀 INDEX CARGADO CORRECTAMENTE");
 
@@ -62,7 +72,6 @@ app.post("/register", async (req, res) => {
     );
 
     console.log("✅ Usuario creado:", email);
-
     res.status(201).json({ message: "Usuario creado" });
   } catch (err) {
     console.error("❌ ERROR REGISTER:", err);
@@ -100,7 +109,6 @@ app.post("/login", async (req, res) => {
     }
 
     const user = result.rows[0];
-
     const valid = await bcrypt.compare(password, user.password_hash);
 
     if (!valid) {
@@ -131,18 +139,126 @@ app.post("/login", async (req, res) => {
 });
 
 /* =========================
-   KPI (IMPORTANTE: FUERA DE LOGIN)
+   UPDATE PROFILE
+========================= */
+app.put("/user/:id", async (req, res) => {
+  console.log("📍 PUT /user/:id", req.params.id, req.body);
+
+  const { id } = req.params;
+  const { username, email } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: "Campos vacíos" });
+  }
+
+  try {
+    const exists = await pool.query(
+      `SELECT * FROM usuario WHERE correo = $1 AND id_usuario != $2`,
+      [email, id]
+    );
+
+    if (exists.rows.length > 0) {
+      return res.status(400).json({ error: "El correo ya está en uso" });
+    }
+
+    await pool.query(
+      `UPDATE usuario SET username = $1, correo = $2 WHERE id_usuario = $3`,
+      [username, email, id]
+    );
+
+    console.log("✅ Perfil actualizado:", id);
+    res.json({ message: "Perfil actualizado correctamente" });
+  } catch (err) {
+    console.error("❌ ERROR UPDATE PROFILE:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   UPDATE PASSWORD
+========================= */
+app.put("/user/:id/password", async (req, res) => {
+  console.log("📍 PUT /user/:id/password", req.params.id);
+
+  const { id } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "Campos vacíos" });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT password_hash FROM usuario WHERE id_usuario = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const user = result.rows[0];
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+
+    if (!valid) {
+      console.log("⚠️ Contraseña actual incorrecta:", id);
+      return res.status(400).json({ error: "Contraseña actual incorrecta" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await pool.query(
+      `UPDATE usuario SET password_hash = $1 WHERE id_usuario = $2`,
+      [hashed, id]
+    );
+
+    console.log("✅ Contraseña actualizada:", id);
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    console.error("❌ ERROR UPDATE PASSWORD:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   UPDATE ROLE
+========================= */
+app.put("/user/:id/role", async (req, res) => {
+  console.log("📍 PUT /user/:id/role", req.params.id, req.body);
+
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!role) {
+    return res.status(400).json({ error: "Role requerido" });
+  }
+
+  let roleId = 4;
+  if (role === "employee") roleId = 2;
+  if (role === "client") roleId = 3;
+  if (role === "admin") roleId = 1;
+
+  try {
+    await pool.query(
+      `UPDATE usuario SET id_rol = $1 WHERE id_usuario = $2`,
+      [roleId, id]
+    );
+
+    console.log("✅ Rol actualizado:", id, role);
+    res.json({ message: "Rol actualizado correctamente" });
+  } catch (err) {
+    console.error("❌ ERROR UPDATE ROLE:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   KPI POST
 ========================= */
 app.post("/kpi", async (req, res) => {
   console.log("📍 POST /kpi", req.body);
 
-  const {
-    id_usuario,
-    tiempo_jugado,
-    amenazas_detectadas,
-    progreso,
-    tasa_retencion
-  } = req.body;
+  const { id_usuario, tiempo_jugado, amenazas_detectadas, progreso, tasa_retencion } = req.body;
 
   if (!id_usuario) {
     console.log("⚠️ Falta id_usuario");
@@ -161,11 +277,7 @@ app.post("/kpi", async (req, res) => {
     );
 
     console.log("✅ KPI guardado:", result.rows[0]);
-
-    res.status(201).json({
-      message: "KPI guardado",
-      data: result.rows[0]
-    });
+    res.status(201).json({ message: "KPI guardado", data: result.rows[0] });
   } catch (err) {
     console.error("❌ ERROR KPI:", err);
     res.status(500).json({ error: err.message });
@@ -173,7 +285,7 @@ app.post("/kpi", async (req, res) => {
 });
 
 /* =========================
-   GET KPI BY USER
+   KPI GET BY USER
 ========================= */
 app.get("/kpi/:id", async (req, res) => {
   console.log("📍 GET /kpi/:id", req.params.id);
@@ -192,7 +304,6 @@ app.get("/kpi/:id", async (req, res) => {
     );
 
     console.log(`📊 KPI encontrados: ${result.rows.length}`);
-
     res.json(result.rows);
   } catch (err) {
     console.error("❌ ERROR GET KPI:", err);
