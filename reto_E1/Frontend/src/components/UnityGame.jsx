@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 export default function UnityGame() {
   const { unityProvider, isLoaded, loadingProgression } =
     useUnityContext({
-      loaderUrl: "/Unity/Build/CyberPrueba.loader.js",
-      dataUrl: "/Unity/Build/CyberPrueba.data.br",
-      frameworkUrl: "/Unity/Build/CyberPrueba.framework.js.br",
-      codeUrl: "/Unity/Build/CyberPrueba.wasm.br",
+      loaderUrl: "/Unity/Build/CyberPath_Ciclo_2.loader.js",
+      dataUrl: "/Unity/Build/CyberPath_Ciclo_2.data",
+      frameworkUrl: "/Unity/Build/CyberPath_Ciclo_2.framework.js",
+      codeUrl: "/Unity/Build/CyberPath_Ciclo_2.wasm",
     });
 
   const [isFullscreen, setIsFullscreen] = useState(false);

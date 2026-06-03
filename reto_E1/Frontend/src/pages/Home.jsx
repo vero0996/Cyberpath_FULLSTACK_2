@@ -195,7 +195,7 @@ export default function Home({ isLoggedIn, setIsLoggedIn }) {
 
           <div className="bg-[#2A2A2A] rounded-xl p-3">
             <video width="100%" height="auto" autoPlay muted loop playsInline className="rounded-lg">
-              <source src="/Grabación de pantalla 2026-05-27 194945.mp4" type="video/mp4" />
+              <source src="/Grabación de pantalla 2026-06-02 213757.mp4" type="video/mp4" />
             </video>
           </div>
 
