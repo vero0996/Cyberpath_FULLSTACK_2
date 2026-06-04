@@ -2,13 +2,17 @@ import { Unity, useUnityContext } from "react-unity-webgl";
 import { useState, useEffect } from "react";
 
 export default function UnityGame() {
-  const { unityProvider, isLoaded, loadingProgression } =
-    useUnityContext({
-      loaderUrl: "/Unity/Build/CyberPath_Ciclo_2.loader.js",
-      dataUrl: "/Unity/Build/CyberPath_Ciclo_2.data",
-      frameworkUrl: "/Unity/Build/CyberPath_Ciclo_2.framework.js",
-      codeUrl: "/Unity/Build/CyberPath_Ciclo_2.wasm",
-    });
+ const {
+    unityProvider,
+    isLoaded,
+    loadingProgression,
+    sendMessage
+  } = useUnityContext({
+    loaderUrl: "/Unity/Build/CyberBueno.loader.js",
+    dataUrl: "/Unity/Build/CyberBueno.data",
+    frameworkUrl: "/Unity/Build/CyberBueno.framework.js",
+    codeUrl: "/Unity/Build/CyberBueno.wasm",
+  });
 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -19,6 +23,23 @@ export default function UnityGame() {
     document.addEventListener("fullscreenchange", handleChange);
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const userId = localStorage.getItem("userId");
+
+    if (userId) {
+      sendMessage(
+        "WebGLBridge",
+        "SetUserId",
+        userId
+      );
+
+      console.log("User enviado a Unity:", userId);
+    }
+
+  }, [isLoaded, sendMessage]);
 
   return (
     <div className="flex flex-col items-center w-full">

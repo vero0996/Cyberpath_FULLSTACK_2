@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const pool = require("../db/db");
+
 router.post("/", async (req, res) => {
   const {
     id_usuario,
@@ -26,6 +28,39 @@ router.post("/", async (req, res) => {
 
   } catch (err) {
     console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/stats/global", async (req, res) => {
+  try {
+
+    const totalUsuarios = await pool.query(`
+      SELECT COUNT(*) FROM usuario
+    `);
+
+    const totalPartidas = await pool.query(`
+      SELECT COUNT(*) FROM kpi_usuario
+    `);
+
+    const promedioAmenazas = await pool.query(`
+      SELECT AVG(amenazas_detectadas) as promedio
+      FROM kpi_usuario
+    `);
+
+    const promedioTiempo = await pool.query(`
+      SELECT AVG(tiempo_jugado) as promedio
+      FROM kpi_usuario
+    `);
+
+    res.json({
+      usuarios: totalUsuarios.rows[0].count,
+      partidas: totalPartidas.rows[0].count,
+      amenazas: promedioAmenazas.rows[0].promedio,
+      tiempo: promedioTiempo.rows[0].promedio
+    });
+
+  } catch(err) {
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,17 +1,107 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+
 export default function DashboardEmployee({ onLogout }) {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("userRole") || "guest";
   const userName = localStorage.getItem("userName") || "User";
   const [scrolled, setScrolled] = useState(false);
 
+  const [kpis, setKpis] = useState([]);
+
+  const historial = [...kpis].reverse().slice(-5);
+
+  const ultimoKpi = kpis.length > 0 ? kpis[0] : null;
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const cargarKpis = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+
+        const response = await fetch(
+          `http://localhost:3000/kpi/${userId}`
+        );
+
+        const data = await response.json();
+
+        setKpis(data);
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+      cargarKpis();
+  }, []);
+
+  const performanceData = [...kpis]
+  .reverse()
+  .map((kpi) => ({
+    fecha: `${new Date(kpi.fecha_registro).toLocaleDateString(
+      "en-US",
+      {
+        month: "short",
+        day: "numeric",
+      }
+    )} (${kpi.id_kpi})`,
+    progreso: Number(kpi.progreso),
+    retencion: Number(kpi.tasa_retencion),
+  }));
+
+  const weaknessData = [
+    {
+      subject: "Threat Response",
+      score: Math.min(
+        Number(ultimoKpi?.amenazas_detectadas || 0) * 5,
+        100
+      ),
+    },
+    {
+      subject: "Training",
+      score: Number(ultimoKpi?.progreso || 0),
+    },
+    {
+      subject: "Retention",
+      score: Number(ultimoKpi?.tasa_retencion || 0),
+    },
+    {
+      subject: "OT Security",
+      score: Math.max(
+        Number(ultimoKpi?.progreso || 0) - 15,
+        0
+      ),
+    },
+    {
+      subject: "Awareness",
+      score: Math.round(
+        (
+          Number(ultimoKpi?.progreso || 0) +
+          Number(ultimoKpi?.tasa_retencion || 0)
+        ) / 2
+      ),
+    },
+  ];
 
   return (
     <div className="bg-[#2A2A2A] min-h-screen text-white">
@@ -66,58 +156,125 @@ export default function DashboardEmployee({ onLogout }) {
 
       {/* KPI CARDS */}
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 px-10 py-16">
+
         {[
-          { value: "2",     label: "Modules Completed" },
-          { value: "2.5s",  label: "Avg Response Time" },
-          { value: "1,000", label: "Threats Solved" },
-          { value: "13%",   label: "Security Accuracy" },
+          {
+            value: ultimoKpi?.amenazas_detectadas || 0,
+            label: "Threats Detected"
+          },
+          {
+            value: `${ultimoKpi?.progreso || 0}%`,
+            label: "Training Completion"
+          },
+          {
+            value: `${ultimoKpi?.tasa_retencion || 0}%`,
+            label: "Knowledge Retention"
+          },
+          {
+            value: `${ultimoKpi?.tiempo_jugado || 0}s`,
+            label: "Simulation Time"
+          },
+
         ].map((k) => (
-          <div key={k.label} className="bg-[#1A1A1A] rounded-2xl p-6 text-center border border-[#333] hover:border-[#CD163F] transition">
-            <h3 className="text-5xl font-bold text-[#CD163F]">{k.value}</h3>
-            <p className="text-xl mt-4 text-gray-300">{k.label}</p>
+
+          <div
+            key={k.label}
+            className="bg-[#1A1A1A] rounded-2xl p-6 text-center border border-[#333] hover:border-[#CD163F] transition"
+          >
+
+            <h3 className="text-5xl font-bold text-[#CD163F]">
+              {k.value}
+            </h3>
+
+            <p className="text-xl mt-4 text-gray-300">
+              {k.label}
+            </p>
+
           </div>
+
         ))}
+
       </section>
 
       {/* CHARTS */}
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-8 px-10 pb-16">
+
+        {/* TEAM PERFORMANCE */}
         <div className="bg-[#1A1A1A] rounded-2xl p-8 border border-[#333]">
-          <h3 className="text-2xl font-bold mb-8 text-center">Team Performance</h3>
-          <div className="flex items-end justify-center gap-8 h-[250px]">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 bg-[#CD163F] h-[200px] rounded-t-lg"></div>
-              <span className="text-gray-400 text-sm">Week 1</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 bg-[#790A23] h-[120px] rounded-t-lg"></div>
-              <span className="text-gray-400 text-sm">Week 2</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 bg-[#4A0515] h-[60px] rounded-t-lg"></div>
-              <span className="text-gray-400 text-sm">Week 3</span>
-            </div>
-          </div>
+          <h3 className="text-2xl font-bold mb-6">
+            Team Performance
+          </h3>
+
+          <ResponsiveContainer width="100%" height={320}>
+            <AreaChart data={performanceData}>
+              <defs>
+                <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#CD163F" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#CD163F" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid stroke="#333" strokeDasharray="3 3" />
+
+              <XAxis
+                dataKey="fecha"
+                stroke="#999"
+              />
+
+              <YAxis
+                stroke="#999"
+                domain={[0, 100]}
+              />
+
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1A1A1A",
+                  border: "1px solid #333",
+                  borderRadius: "12px",
+                }}
+              />
+
+              <Area
+                type="monotone"
+                dataKey="progreso"
+                stroke="#CD163F"
+                fillOpacity={1}
+                fill="url(#performanceGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
+        {/* WEAKNESS AREAS */}
         <div className="bg-[#1A1A1A] rounded-2xl p-8 border border-[#333]">
-          <h3 className="text-2xl font-bold mb-10 text-center">Weakness Areas</h3>
-          <div className="space-y-6">
-            {[
-              { label: "Phishing Detection", pct: "40%", color: "bg-[#CD163F]", w: "w-[40%]" },
-              { label: "Incident Response",  pct: "35%", color: "bg-[#790A23]", w: "w-[35%]" },
-              { label: "OT Device Security", pct: "25%", color: "bg-[#4A0515]", w: "w-[25%]" },
-            ].map((b) => (
-              <div key={b.label}>
-                <div className="flex justify-between mb-2">
-                  <span>{b.label}</span><span>{b.pct}</span>
-                </div>
-                <div className="w-full bg-[#333] rounded-full h-3">
-                  <div className={`${b.color} ${b.w} h-3 rounded-full`}></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-2xl font-bold mb-6">
+            Weakness Areas
+          </h3>
+
+          <ResponsiveContainer width="100%" height={320}>
+            <RadarChart data={weaknessData}>
+              <PolarGrid stroke="#444" />
+
+              <PolarAngleAxis
+                dataKey="subject"
+                tick={{ fill: "#ccc" }}
+              />
+
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 100]}
+              />
+
+              <Radar
+                dataKey="score"
+                stroke="#CD163F"
+                fill="#CD163F"
+                fillOpacity={0.35}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
         </div>
+
       </section>
 
       {/* BUTTONS */}

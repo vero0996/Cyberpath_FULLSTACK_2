@@ -8,6 +8,7 @@ export default function SignIn({ setIsLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+
   const handleLogin = async (e) => {
 
     e.preventDefault();
@@ -32,7 +33,7 @@ export default function SignIn({ setIsLoggedIn }) {
       localStorage.setItem("userId",    data.user.id);        
       localStorage.setItem("userName",  data.user.username);
       localStorage.setItem("userEmail", data.user.email);     
-      localStorage.setItem("userRole",  data.user.role);    
+      localStorage.setItem("userRole",  data.user.role);   
 
       setIsLoggedIn(true);
       navigate("/");
