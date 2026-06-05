@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PopupSignIn from "../pages/PopUpLogin";
+import { useAuth } from "./Context/AuthContext";
 
 function FAQItem({ question, answer }) {
   const [open, setOpen] = useState(false);
@@ -31,15 +32,21 @@ function FAQItem({ question, answer }) {
   );
 }
 
-export default function Home({ isLoggedIn, setIsLoggedIn }) {
+export default function Home() {
+  const { user, logout } = useAuth();
+  const isLoggedIn = !!user;
+  const userRole = user?.role || "guest";
+  const userName = user?.username || "User";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   const [showPopup, setShowPopup] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const navigate = useNavigate();
-
-  const userRole = localStorage.getItem("userRole") || "guest";
-  const userName = localStorage.getItem("userName") || "User";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,12 +55,6 @@ export default function Home({ isLoggedIn, setIsLoggedIn }) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setIsLoggedIn(false);
-    navigate("/");
-  };
 
   const handleDashboardAccess = () => {
     if (isLoggedIn) navigate(`/dashboard/${userRole}`);
@@ -112,7 +113,7 @@ export default function Home({ isLoggedIn, setIsLoggedIn }) {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">{userName}</h3>
-                    <p className="text-gray-400 text-sm">{localStorage.getItem("userEmail")}</p>
+                    <p className="text-gray-400 text-sm">{user?.email}</p>
                   </div>
                 </div>
                 <div className="border-t border-[#333] pt-4 flex flex-col gap-3">

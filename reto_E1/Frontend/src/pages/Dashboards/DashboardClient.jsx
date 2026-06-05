@@ -1,3 +1,5 @@
+import { useAuth } from "../Context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -17,44 +19,45 @@ import {
 } from "recharts";
 
 export default function DashboardClient({ onLogout }) {
-  const navigate = useNavigate();
-  const userRole = localStorage.getItem("userRole") || "guest";
-  const userName = localStorage.getItem("userName") || "User";
+  const { user, logout } = useAuth();
 
-  const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
+
+  const userRole = user?.role || "guest";
+  const userName = user?.username || "User";
+
+  const userId = user?.id;
 
   const [scrolled, setScrolled] = useState(false);
 
   const [kpis, setKpis] = useState([]);
 
-  const chartData = [...kpis]
-  .reverse()
-  .map((kpi) => ({
-    fecha: `${new Date(kpi.fecha_registro).toLocaleDateString(
-      "en-US",
-      {
-        month: "short",
-        day: "numeric",
-      }
-    )} (${kpi.id_kpi})`,
+  const chartData = Array.isArray(kpis) ? [...kpis].reverse().map((kpi) => ({
+    fecha: `${new Date(kpi.fecha_registro).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} (${kpi.id_kpi})`,
     progreso: Number(kpi.progreso),
     retencion: Number(kpi.tasa_retencion),
-  }));
+  })) : [];
+
+    useEffect(() => {
+      const handleScroll = () => setScrolled(window.scrollY > 50);
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  if (!user?.id) return;
 
-  useEffect(() => {
-    if (!userId) return;
-
-    fetch(`http://localhost:3000/kpi/${userId}`)
-      .then((res) => res.json())
-      .then((data) => setKpis(data))
-      .catch((err) => console.error(err));
-  }, [userId]);
+  fetch(`http://localhost:3000/kpi/${user.id}`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (Array.isArray(data)) setKpis(data);
+      else setKpis([]); 
+    })
+    .catch((err) => console.error(err));
+}, [user?.id]); 
 
   const ultimoKpi =
   kpis.length > 0 ? kpis[0] : null;
@@ -173,12 +176,12 @@ export default function DashboardClient({ onLogout }) {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{userName}</h3>
-                  <p className="text-gray-400 text-sm">{localStorage.getItem("userEmail")}</p>
+                  <p className="text-gray-400 text-sm">{user?.email}</p>
                 </div>
               </div>
               <div className="border-t border-[#333] pt-4 flex flex-col gap-3">
                 <button onClick={() => navigate("/settings")} className="w-full bg-[#222] hover:bg-[#333] transition py-2 rounded-xl font-bold">Settings</button>
-                <button onClick={onLogout} className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold">Logout</button>
+                <button onClick={logout} className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold">Logout</button>
               </div>
             </div>
           </div>

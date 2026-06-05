@@ -62,21 +62,36 @@ app.post("/register", async (req, res) => {
     if (role === "employee") roleId = 2;
     if (role === "client") roleId = 3;
 
-    await pool.query(
-      `
-      INSERT INTO usuario
-      (username, correo, password_hash, fecha_registro, estado, id_rol)
-      VALUES ($1, $2, $3, CURRENT_DATE, 'Activo', $4)
-      `,
-      [username, email, hashed, roleId]
-    );
+    const newUser = await pool.query(
+  `
+  INSERT INTO usuario
+  (username, correo, password_hash, fecha_registro, estado, id_rol)
+  VALUES ($1, $2, $3, CURRENT_DATE, 'Activo', $4)
+  RETURNING id_usuario, username, correo, id_rol
+  `,
+  [username, email, hashed, roleId]
+);
+
+    const user = newUser.rows[0];
+
+    let roleName = "guest";
+    if (roleId === 2) roleName = "employee";
+    if (roleId === 3) roleName = "client";
 
     console.log("✅ Usuario creado:", email);
-    res.status(201).json({ message: "Usuario creado" });
-  } catch (err) {
-    console.error("❌ ERROR REGISTER:", err);
-    res.status(500).json({ error: err.message });
-  }
+    res.status(201).json({
+      message: "Usuario creado",
+      user: {
+        id: user.id_usuario,
+        username: user.username,
+        email: user.correo,
+        role: roleName
+      }
+    });
+    } catch (err) {
+      console.error("❌ ERROR REGISTER:", err);
+      res.status(500).json({ error: err.message });
+    }
 });
 
 /* =========================

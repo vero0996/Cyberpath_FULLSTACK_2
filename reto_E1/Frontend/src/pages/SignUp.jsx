@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./Context/AuthContext";
 
-export default function SignUp({ setIsLoggedIn }) {
+export default function SignUp() {
 
   const navigate = useNavigate();
+  const { login } = useAuth(); 
 
   const [formData, setFormData] = useState({
     name: "",
@@ -14,10 +16,11 @@ export default function SignUp({ setIsLoggedIn }) {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target; 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -47,13 +50,22 @@ export default function SignUp({ setIsLoggedIn }) {
         return;
       }
 
-      localStorage.setItem("userId",    data.user?.id || "");
-      localStorage.setItem("userName",  formData.name);
-      localStorage.setItem("userEmail", formData.email);
-      localStorage.setItem("userRole",  formData.role);
+      const user = data.user || data.data || data;
 
-      setIsLoggedIn(true);
-      navigate(`/dashboard/${formData.role}`);
+      if (!user?.id) {
+        console.error("Bad register response:", data);
+        alert("Signup failed: no user returned");
+        return;
+      }
+
+      login({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      });
+      navigate(`/`);
+
 
     } catch (err) {
       console.log(err);

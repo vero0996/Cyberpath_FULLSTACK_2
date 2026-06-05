@@ -1,10 +1,13 @@
+import { useAuth } from "./Context/AuthContext";
+
 import { Link, useNavigate } from "react-router-dom";
 import UnityGame from "../components/UnityGame";
 import { useRef, useState, useEffect } from "react";
 
 export default function GamePage() {
-  const userRole = localStorage.getItem("userRole");
-  const userName = localStorage.getItem("userName") || "User";
+  const { user, logout } = useAuth();
+  const userRole = user?.role || "guest";
+  const userName = user?.username || "User";
   const navigate = useNavigate();
 
   const gameRef = useRef(null);
@@ -66,7 +69,7 @@ export default function GamePage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{userName}</h3>
-                  <p className="text-gray-400 text-sm">{localStorage.getItem("userEmail")}</p>
+                  <p className="text-gray-400 text-sm">{user?.email}</p>
                 </div>
               </div>
               <div className="border-t border-[#333] pt-4 flex flex-col gap-3">
@@ -77,7 +80,7 @@ export default function GamePage() {
                   Settings
                 </button>
                 <button
-                  onClick={() => { localStorage.clear(); navigate("/"); }}
+                  onClick={() => { logout(); navigate("/"); }}
                   className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold"
                 >
                   Logout

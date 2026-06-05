@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 
-import { useState } from "react";
+import { useAuth } from "./pages/Context/AuthContext";
 
 import Login from "./pages/Login";
 import Home from "./pages/Home";
@@ -14,58 +14,39 @@ import GamePage from "./pages/GamePage";
 import SignUp from "./pages/SignUp";
 import Settings from "./pages/Settings";
 
-function ProtectedRoute({ isLoggedIn, children }) {
-  return isLoggedIn
-    ? children
-    : <Navigate to="/login" />;
+function ProtectedRoute({ user, children }) {
+  return user ? children : <Navigate to="/login" />;
 }
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-  localStorage.getItem("userRole") !== null);
+  const { user } = useAuth();
 
   return (
     <BrowserRouter>
-
       <Routes>
 
         {/* PUBLIC */}
         <Route
           path="/"
-          element={
-            <Home
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          }
+          element={<Home />}
         />
 
         <Route
           path="/login"
-          element={
-            <Login
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          }
+          element={<Login />}
         />
 
         <Route
           path="/signup"
-          element={
-            <SignUp
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          }
+          element={<SignUp />}
         />
 
         {/* PROTECTED */}
         <Route
           path="/dashboard/:role"
           element={
-            <ProtectedRoute isLoggedIn={isLoggedIn}>
-              <Dashboard
-                setIsLoggedIn={setIsLoggedIn}
-              />
+            <ProtectedRoute user={user}>
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -73,18 +54,22 @@ function App() {
         <Route
           path="/game"
           element={
-            <ProtectedRoute isLoggedIn={isLoggedIn}>
+            <ProtectedRoute user={user}>
               <GamePage />
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/settings"
-          element={<Settings />}
+          element={
+            <ProtectedRoute user={user}>
+              <Settings />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>
-
     </BrowserRouter>
   );
 }

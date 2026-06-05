@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function SignIn({ setIsLoggedIn }) {
+import { useAuth } from "./Context/AuthContext";
+
+export default function SignIn() {
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
 
   const handleLogin = async (e) => {
 
@@ -33,9 +35,14 @@ export default function SignIn({ setIsLoggedIn }) {
       localStorage.setItem("userId",    data.user.id);        
       localStorage.setItem("userName",  data.user.username);
       localStorage.setItem("userEmail", data.user.email);     
-      localStorage.setItem("userRole",  data.user.role);   
+      localStorage.setItem("userRole",  data.user.role);    
 
-      setIsLoggedIn(true);
+      login({
+        id: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        role: data.user.role,
+      });
       navigate("/");
 
     } catch (err) {

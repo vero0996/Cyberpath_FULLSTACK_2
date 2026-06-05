@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAuth } from "./Context/AuthContext";
+
 export default function Settings() {
 
+  const { user, login } = useAuth();
+  
   const navigate = useNavigate();
-  const userRole = localStorage.getItem("userRole") || "guest";
+  const userRole = user?.role || "guest";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -14,9 +18,9 @@ export default function Settings() {
   }, []);
 
   const initialUser = {
-    username: localStorage.getItem("userName") || "User",
-    email:    localStorage.getItem("userEmail") || "user@email.com",
-    role:     localStorage.getItem("userRole")  || "guest",
+    username: user?.username || "User",
+    email:    user?.email    || "user@email.com",
+    role:     user?.role     || "guest",
   };
 
   const [section, setSection]           = useState("profile");
@@ -25,7 +29,7 @@ export default function Settings() {
   const [selectedRole, setSelectedRole] = useState(initialUser.role);
 
   const handleSaveProfile = async () => {
-    const userId = localStorage.getItem("userId");
+    const userId = user?.id;
     try {
       const response = await fetch(`http://localhost:3000/user/${userId}`, {
         method: "PUT",
@@ -36,12 +40,15 @@ export default function Settings() {
       alert(data.message);
       localStorage.setItem("userName",  profile.username);
       localStorage.setItem("userEmail", profile.email);
+
+      login({ ...user, username: profile.username, email: profile.email });
+
     } catch (err) { console.error(err); }
   };
 
   const handlePasswordChange = async () => {
     if (passwords.new !== passwords.confirm) { alert("Passwords do not match"); return; }
-    const userId = localStorage.getItem("userId");
+    const userId = user?.id;
     try {
       const response = await fetch(`http://localhost:3000/user/${userId}/password`, {
         method: "PUT",
@@ -55,18 +62,18 @@ export default function Settings() {
   };
 
   const handleRoleUpdate = async () => {
-    const userId = localStorage.getItem("userId");
-    try {
-      const response = await fetch(`http://localhost:3000/user/${userId}/role`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole })
-      });
-      const data = await response.json();
-      alert(data.message);
-      localStorage.setItem("userRole", selectedRole);
-    } catch (err) { console.error(err); }
-  };
+  const userId = user?.id; 
+  try {
+    const response = await fetch(`http://localhost:3000/user/${userId}/role`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: selectedRole })
+    });
+    const data = await response.json();
+    alert(data.message);
+    login({ ...user, role: selectedRole }); 
+  } catch (err) { console.error(err); }
+};
 
   const menuItems = [
     { key: "profile",  label: "Profile" },

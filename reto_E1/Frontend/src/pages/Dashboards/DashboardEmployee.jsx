@@ -1,3 +1,5 @@
+import { useAuth } from "../Context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -17,9 +19,10 @@ import {
 } from "recharts";
 
 export default function DashboardEmployee({ onLogout }) {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const userRole = localStorage.getItem("userRole") || "guest";
-  const userName = localStorage.getItem("userName") || "User";
+  const userRole = user?.role || "guest";
+  const userName = user?.username || "User";
   const [scrolled, setScrolled] = useState(false);
 
   const [kpis, setKpis] = useState([]);
@@ -35,25 +38,19 @@ export default function DashboardEmployee({ onLogout }) {
   }, []);
 
   useEffect(() => {
+    if (!user?.id) return; 
     const cargarKpis = async () => {
       try {
-        const userId = localStorage.getItem("userId");
-
-        const response = await fetch(
-          `http://localhost:3000/kpi/${userId}`
-        );
-
+        const response = await fetch(`http://localhost:3000/kpi/${user.id}`);
         const data = await response.json();
-
-        setKpis(data);
-
+        if (Array.isArray(data)) setKpis(data);
+        else setKpis([]);
       } catch (error) {
         console.error(error);
       }
     };
-
-      cargarKpis();
-  }, []);
+    cargarKpis();
+  }, [user?.id]); 
 
   const performanceData = [...kpis]
   .reverse()
