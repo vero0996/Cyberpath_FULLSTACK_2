@@ -30,12 +30,7 @@ export default function SignIn() {
       if (!response.ok) {
         alert(data.error);
         return;
-      }
-
-      localStorage.setItem("userId",    data.user.id);        
-      localStorage.setItem("userName",  data.user.username);
-      localStorage.setItem("userEmail", data.user.email);     
-      localStorage.setItem("userRole",  data.user.role);    
+      }    
 
       login({
         id: data.user.id,

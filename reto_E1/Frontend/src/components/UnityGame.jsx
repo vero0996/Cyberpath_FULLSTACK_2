@@ -8,10 +8,10 @@ export default function UnityGame() {
     loadingProgression,
     sendMessage
   } = useUnityContext({
-    loaderUrl: "/Unity/Build/CyberBueno.loader.js",
-    dataUrl: "/Unity/Build/CyberBueno.data",
-    frameworkUrl: "/Unity/Build/CyberBueno.framework.js",
-    codeUrl: "/Unity/Build/CyberBueno.wasm",
+    loaderUrl: "/Unity/Build/CyberP.loader.js",
+    dataUrl: "/Unity/Build/CyberP.data",
+    frameworkUrl: "/Unity/Build/CyberP.framework.js",
+    codeUrl: "/Unity/Build/CyberP.wasm",
   });
 
   const [isFullscreen, setIsFullscreen] = useState(false);
