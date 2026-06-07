@@ -48,16 +48,19 @@ export default function DashboardClient({ onLogout }) {
     }, []);
 
   useEffect(() => {
-  if (!user?.id) return;
+    if (!user?.id) return;
 
-  fetch(`http://localhost:3000/kpi/${user.id}`)
-    .then((res) => res.json())
-    .then((data) => {
-      if (Array.isArray(data)) setKpis(data);
-      else setKpis([]); 
-    })
-    .catch((err) => console.error(err));
-}, [user?.id]); 
+    fetch(`http://localhost:3000/kpi/${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setKpis(data);
+        else setKpis([]);
+      })
+      .catch((err) => {
+        console.error(err);
+        setKpis([]);  
+      });
+  }, [user?.id]);
 
   const ultimoKpi =
   kpis.length > 0 ? kpis[0] : null;

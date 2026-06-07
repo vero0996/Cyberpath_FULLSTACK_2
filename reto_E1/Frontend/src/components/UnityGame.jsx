@@ -8,10 +8,10 @@ export default function UnityGame() {
     loadingProgression,
     sendMessage
   } = useUnityContext({
-    loaderUrl: "/Unity/Build/CyberP.loader.js",
-    dataUrl: "/Unity/Build/CyberP.data",
-    frameworkUrl: "/Unity/Build/CyberP.framework.js",
-    codeUrl: "/Unity/Build/CyberP.wasm",
+    loaderUrl: "/Unity/Build/CyberPath_Demoo.loader.js",
+    dataUrl: "/Unity/Build/CyberPath_Demoo.data",
+    frameworkUrl: "/Unity/Build/CyberPath_Demoo.framework.js",
+    codeUrl: "/Unity/Build/CyberPath_Demoo.wasm",
   });
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -40,6 +40,56 @@ export default function UnityGame() {
     }
 
   }, [isLoaded, sendMessage]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const handleGameOver = (event) => {
+      const { userId, tiempo_jugado, amenazas_detectadas, progreso, tasa_retencion } = event.detail;
+
+      fetch("http://localhost:3000/kpi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_usuario: userId,
+          tiempo_jugado,
+          amenazas_detectadas,
+          progreso,
+          tasa_retencion,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log("KPI guardado:", data))
+        .catch((err) => console.error("Error guardando KPI:", err));
+    };
+
+    window.addEventListener("GameOver", handleGameOver);
+    return () => window.removeEventListener("GameOver", handleGameOver);
+  }, [isLoaded]);
+
+  useEffect(() => {
+    window.ReceiveKPI = (tiempo, amenazas, progreso, retencion) => {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+
+      fetch("http://localhost:3000/kpi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_usuario: parseInt(userId),
+          tiempo_jugado: tiempo,
+          amenazas_detectadas: amenazas,
+          progreso: progreso,
+          tasa_retencion: retencion,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log("✅ KPI guardado:", data))
+        .catch((err) => console.error("❌ Error KPI:", err));
+    };
+
+    return () => { delete window.ReceiveKPI; };
+  }, []);
 
   return (
     <div className="flex flex-col items-center w-full">

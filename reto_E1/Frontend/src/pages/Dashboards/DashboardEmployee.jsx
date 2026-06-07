@@ -37,20 +37,21 @@ export default function DashboardEmployee({ onLogout }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (!user?.id) return; 
-    const cargarKpis = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/kpi/${user.id}`);
-        const data = await response.json();
-        if (Array.isArray(data)) setKpis(data);
-        else setKpis([]);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    cargarKpis();
-  }, [user?.id]); 
+useEffect(() => {
+  if (!user?.id) return; 
+  const cargarKpis = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/kpi/${user.id}`);
+      const data = await response.json();
+      if (Array.isArray(data)) setKpis(data);
+      else setKpis([]);
+    } catch (error) {
+      console.error(error);
+      setKpis([]);  
+    }
+  };
+  cargarKpis();
+}, [user?.id]);
 
   const performanceData = [...kpis]
   .reverse()
@@ -132,12 +133,12 @@ export default function DashboardEmployee({ onLogout }) {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{userName}</h3>
-                  <p className="text-gray-400 text-sm">{localStorage.getItem("userEmail")}</p>
+                  <p className="text-gray-400 text-sm">{user?.email}</p>
                 </div>
               </div>
               <div className="border-t border-[#333] pt-4 flex flex-col gap-3">
                 <button onClick={() => navigate("/settings")} className="w-full bg-[#222] hover:bg-[#333] transition py-2 rounded-xl font-bold">Settings</button>
-                <button onClick={onLogout} className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold">Logout</button>
+                <button onClick={logout} className="w-full bg-[#CD163F] hover:bg-[#a80f32] transition py-2 rounded-xl font-bold">Logout</button>
               </div>
             </div>
           </div>

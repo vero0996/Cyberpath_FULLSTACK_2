@@ -28,7 +28,7 @@ export default function DashboardGuest({ onLogout }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
   if (!user?.id) return; 
   const cargarKpis = async () => {
     try {
@@ -38,10 +38,11 @@ export default function DashboardGuest({ onLogout }) {
       else setKpis([]);
     } catch (error) {
       console.error(error);
+      setKpis([]); 
     }
   };
   cargarKpis();
-}, [user?.id]); 
+}, [user?.id]);
 
   return (
     <div className="bg-[#2A2A2A] min-h-screen text-white">

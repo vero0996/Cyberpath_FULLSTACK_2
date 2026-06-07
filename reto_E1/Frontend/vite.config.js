@@ -5,4 +5,9 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  server: {
+    watch: {
+      ignored: ["**/public/Unity/**"],
+    },
+  },
 })
